@@ -1,0 +1,19 @@
+{
+  "name": "vrchat-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "express": "^5.2.1",
+    "express-rate-limit": "^8.4.1",
+    "pg": "^8.20.0"
+  }
+}
