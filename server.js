@@ -55,7 +55,7 @@ app.get("/api/auth", (req, res) => {
   const urls = [];
   for (let i = 0; i < 15; i++) {
     const slot = `slot_${i.toString().padStart(2, "0")}`;
-   urls.push(`https://vrchat-backend.onrender.com/api/image/${slot}?user=${user}`);
+  urls.push(`https://vrchat-backend.onrender.com/api/image/${user}/${slot}`);;
   }
 
   res.json({
@@ -71,11 +71,10 @@ app.get("/api/auth", (req, res) => {
 app.get("/api/image/:user/:slot", (req, res) => {
   const { user, slot } = req.params;
 
-  // 🔥 URL FINAL EN R2
   const imageUrl = `${BASE_URL}/${user}/${slot}.jpg`;
 
-  // 🔥 REDIRECT (clave para VRChat)
   res.redirect(imageUrl);
+});
 });
 
 // 🚀 START SERVER
