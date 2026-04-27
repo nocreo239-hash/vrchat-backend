@@ -1,40 +1,30 @@
 const express = require('express');
 const app = express();
 
-// 🔥 IMPORTANTE: cambia esto por tu URL real de Cloudflare
+// 🔥 TU BASE DE CLOUDFLARE
 const IMAGE_BASE = "https://pub-45d25886bf1f485f84d01802a0471eaa.r2.dev";
 
-// 🔐 Usuarios (aquí creas todos los que quieras)
+// 👤 USUARIOS
 const USERS = {
     "ALLAN": {
-        password: "ALLAN123",
+        password: "test123",
         tier: 2
     },
-    "admin": {
+    "ADMIN": {
         password: "admin123",
         tier: 3
     }
 };
 
-// ✅ Endpoint de salud (Render lo usa)
+// ✅ HEALTH CHECK
 app.get('/api/health', (req, res) => {
     res.json({ status: "ok" });
 });
 
-// 🔑 LOGIN
-app.get('/api/auth', (req, res) => {
-    const user = req.query.user;
-    const pass = req.query.pass;
-
-    if (!user || !pass) {
-        return res.json({
-            success: false,
-            tier: 0,
-            displayName: "",
-            urls: [],
-            error: "Missing credentials"
-        });
-    }
+// 🔐 LOGIN (FORMATO COMPATIBLE CON UDON)
+app.get('/api/auth/:user/:pass', (req, res) => {
+    const user = (req.params.user || "").trim();
+    const pass = (req.params.pass || "").trim();
 
     const u = USERS[user];
 
@@ -48,7 +38,7 @@ app.get('/api/auth', (req, res) => {
         });
     }
 
-    // 📸 Generar URLs automáticamente (15 slots)
+    // 📸 GENERAR URLs
     const urls = [];
     for (let i = 0; i < 15; i++) {
         const index = String(i).padStart(2, '0');
@@ -64,7 +54,7 @@ app.get('/api/auth', (req, res) => {
     });
 });
 
-// 🚀 PORT (Render usa esto)
+// 🚀 PORT
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`[Server] Running on port ${PORT}`);
