@@ -55,7 +55,7 @@ app.get("/api/auth", (req, res) => {
   const urls = [];
   for (let i = 0; i < 15; i++) {
     const slot = `slot_${i.toString().padStart(2, "0")}`;
-  urls.push(`https://vrchat-backend.onrender.com/api/image/${user}/${slot}`);;
+  urls.push(`https://vrchat-backend.onrender.com/api/image/${user}/${slot}`);
   }
 
   res.json({
@@ -74,7 +74,6 @@ app.get("/api/image/:user/:slot", (req, res) => {
   const imageUrl = `${BASE_URL}/${user}/${slot}.jpg`;
 
   res.redirect(imageUrl);
-});
 });
 
 // 🚀 START SERVER
