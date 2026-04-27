@@ -1,8 +1,12 @@
 const bcrypt = require('bcrypt');
 const { Pool } = require('pg');
 
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 async function addUser(username, password, tier) {
   const safeUsername = String(username || '').replace(/[^a-zA-Z0-9_\-.@]/g, '').slice(0, 64);
   const safePassword = String(password || '').slice(0, 128);
