@@ -1,91 +1,85 @@
 const express = require("express");
-const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
-const app = express();
-const PORT = process.env.PORT || 3000;
+const cors = require("cors");
 
-// 🔹 BASE CLOUDFLARE
+const app = express();
+app.use(cors());
+
+// 🔥 URL BASE DE CLOUDLFARE (TU R2)
 const BASE_URL = "https://pub-45d25886bf1f485f84d01802a0471eaa.r2.dev/users";
 
-// 🔹 USUARIOS
+// 🔐 USUARIOS (puedes añadir más aquí)
 const users = {
-  ALLAN: { password: "test123", tier: 2 },
-  FRANCO: { password: "1234", tier: 1 }
+  "ALLAN": {
+    password: "test123",
+    tier: 2
+  },
+  "FRANCO": {
+    password: "1234",
+    tier: 1
+  }
 };
 
-// 🔹 SESIONES (simple)
-app.get("/api/image/:user/:slot", (req, res) => {
-  const { user, slot } = req.params;
-
-  const imageUrl = `${BASE_URL}/${user}/${slot}.jpg`;
-
-  res.redirect(imageUrl);
+// 🧪 HEALTH CHECK
+app.get("/api/health", (req, res) => {
+  res.json({ status: "ok" });
 });
-// 🔹 LOGIN
-app.get("/api/auth/:user/:pass", (req, res) => {
-  const { user, pass } = req.params;
 
-  const u = users[user];
+// 🔑 LOGIN (compatible con VRChat)
+app.get("/api/auth", (req, res) => {
+  const { user, pass } = req.query;
 
-  if (!u || u.password !== pass) {
+  // Validación básica
+  if (!user || !pass) {
     return res.json({
       success: false,
       tier: 0,
       displayName: "",
       urls: [],
-      error: "Invalid login"
+      error: "Missing credentials"
     });
   }
 
-  activeUser = user;
+  const userData = users[user];
 
-  // URLs FIJAS (Unity usa estas)
+  if (!userData || userData.password !== pass) {
+    return res.json({
+      success: false,
+      tier: 0,
+      displayName: "",
+      urls: [],
+      error: "Invalid username or password"
+    });
+  }
+
+  // 🔥 GENERAR URLs DE IMÁGENES
   const urls = [];
   for (let i = 0; i < 15; i++) {
-    const slot = i.toString().padStart(2, "0");
-    urls.push(`https://vrchat-backend.onrender.com/api/image/slot_${slot}`);
+    const slot = `slot_${i.toString().padStart(2, "0")}`;
+    urls.push(`https://vrchat-backend.onrender.com/api/image/${user}/${slot}`);
   }
 
   res.json({
     success: true,
-    tier: u.tier,
+    tier: userData.tier,
     displayName: user,
     urls: urls,
     error: ""
   });
 });
 
-// 🔹 SERVIR IMÁGENES DINÁMICAS
-app.get("/api/image/:slot", async (req, res) => {
-  if (!activeUser) {
-    return res.status(403).send("Not logged in");
-  }
+// 🖼️ SERVIR IMÁGENES (REDIRECT → CLOUDLFARE)
+app.get("/api/image/:user/:slot", (req, res) => {
+  const { user, slot } = req.params;
 
-  const slot = req.params.slot;
+  // 🔥 URL FINAL EN R2
+  const imageUrl = `${BASE_URL}/${user}/${slot}.jpg`;
 
-  const imageUrl = `${BASE_URL}/${activeUser}/${slot}.jpg`;
-
-  try {app.get("/api/image/:slot", (req, res) => {
-  if (!activeUser) {
-    return res.status(403).send("Not logged in");
-  }
-
-  const slot = req.params.slot;
-
-  const imageUrl = `${BASE_URL}/${activeUser}/${slot}.jpg`;
-
-  // 🔥 REDIRECT DIRECTO (CLAVE)
+  // 🔥 REDIRECT (clave para VRChat)
   res.redirect(imageUrl);
 });
-  } catch (err) {
-    res.status(500).send("Error loading image");
-  }
-});
 
-// 🔹 HEALTH
-app.get("/api/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
+// 🚀 START SERVER
+const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Server running on port " + PORT);
 });
