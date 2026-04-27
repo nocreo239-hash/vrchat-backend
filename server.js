@@ -13,8 +13,13 @@ const users = {
 };
 
 // 🔹 SESIONES (simple)
-let activeUser = null;
+app.get("/api/image/:user/:slot", (req, res) => {
+  const { user, slot } = req.params;
 
+  const imageUrl = `${BASE_URL}/${user}/${slot}.jpg`;
+
+  res.redirect(imageUrl);
+});
 // 🔹 LOGIN
 app.get("/api/auth/:user/:pass", (req, res) => {
   const { user, pass } = req.params;
