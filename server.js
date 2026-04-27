@@ -1,60 +1,80 @@
 const express = require("express");
+const fetch = require("node-fetch");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// 🔹 URL BASE DE TUS IMÁGENES EN CLOUDFLARE
+// 🔹 BASE CLOUDFLARE
 const BASE_URL = "https://pub-45d25886bf1f485f84d01802a0471eaa.r2.dev/users";
 
-// 🔹 USUARIOS (puedes añadir más aquí)
-const users = [
-  { username: "ALLAN", password: "test123", tier: 2 },
-  { username: "FRANCO", password: "1234", tier: 1 },
-  { username: "VIP", password: "vip123", tier: 3 }
-];
+// 🔹 USUARIOS
+const users = {
+  ALLAN: { password: "test123", tier: 2 },
+  FRANCO: { password: "1234", tier: 1 }
+};
 
-// 🔹 GENERA SIEMPRE LAS MISMAS URLs (FIJAS)
-function generateFixedUrls() {
-  const urls = [];
-
-  for (let i = 0; i < 15; i++) {
-    const slot = i.toString().padStart(2, "0");
-    urls.push(`${BASE_URL}/slot_${slot}.jpg`);
-  }
-
-  return urls;
-}
+// 🔹 SESIONES (simple)
+let activeUser = null;
 
 // 🔹 LOGIN
 app.get("/api/auth/:user/:pass", (req, res) => {
   const { user, pass } = req.params;
 
-  const foundUser = users.find(
-    u => u.username === user && u.password === pass
-  );
+  const u = users[user];
 
-  if (!foundUser) {
+  if (!u || u.password !== pass) {
     return res.json({
       success: false,
       tier: 0,
       displayName: "",
       urls: [],
-      error: "Invalid username or password"
+      error: "Invalid login"
     });
   }
 
-  // ✅ SIEMPRE DEVUELVE LAS MISMAS URLs
-  const urls = generateFixedUrls();
+  activeUser = user;
 
-  return res.json({
+  // URLs FIJAS (Unity usa estas)
+  const urls = [];
+  for (let i = 0; i < 15; i++) {
+    const slot = i.toString().padStart(2, "0");
+    urls.push(`https://vrchat-backend.onrender.com/api/image/slot_${slot}`);
+  }
+
+  res.json({
     success: true,
-    tier: foundUser.tier,
-    displayName: foundUser.username,
+    tier: u.tier,
+    displayName: user,
     urls: urls,
     error: ""
   });
 });
 
-// 🔹 HEALTH CHECK
+// 🔹 SERVIR IMÁGENES DINÁMICAS
+app.get("/api/image/:slot", async (req, res) => {
+  if (!activeUser) {
+    return res.status(403).send("Not logged in");
+  }
+
+  const slot = req.params.slot;
+
+  const imageUrl = `${BASE_URL}/${activeUser}/${slot}.jpg`;
+
+  try {
+    const response = await fetch(imageUrl);
+
+    if (!response.ok) {
+      return res.status(404).send("Image not found");
+    }
+
+    res.set("Content-Type", "image/jpeg");
+    response.body.pipe(res);
+  } catch (err) {
+    res.status(500).send("Error loading image");
+  }
+});
+
+// 🔹 HEALTH
 app.get("/api/health", (req, res) => {
   res.json({ status: "ok" });
 });
