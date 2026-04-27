@@ -1,8 +1,8 @@
 const express = require("express");
-const cors = require("cors");
+
 
 const app = express();
-app.use(cors());
+
 
 // 🔥 URL BASE DE CLOUDLFARE (TU R2)
 const BASE_URL = "https://pub-45d25886bf1f485f84d01802a0471eaa.r2.dev/users";
