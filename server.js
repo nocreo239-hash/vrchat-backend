@@ -1,6 +1,5 @@
 const express = require("express");
-const fetch = require("node-fetch");
-
+const fetch = (...args) => import('node-fetch').then(({default: fetch}) => fetch(...args));
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -60,15 +59,18 @@ app.get("/api/image/:slot", async (req, res) => {
 
   const imageUrl = `${BASE_URL}/${activeUser}/${slot}.jpg`;
 
-  try {
-    const response = await fetch(imageUrl);
+  try {app.get("/api/image/:slot", (req, res) => {
+  if (!activeUser) {
+    return res.status(403).send("Not logged in");
+  }
 
-    if (!response.ok) {
-      return res.status(404).send("Image not found");
-    }
+  const slot = req.params.slot;
 
-    res.set("Content-Type", "image/jpeg");
-    response.body.pipe(res);
+  const imageUrl = `${BASE_URL}/${activeUser}/${slot}.jpg`;
+
+  // 🔥 REDIRECT DIRECTO (CLAVE)
+  res.redirect(imageUrl);
+});
   } catch (err) {
     res.status(500).send("Error loading image");
   }
